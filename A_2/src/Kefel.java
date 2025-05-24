@@ -1,40 +1,37 @@
 import java.io.FileWriter;
-import java.io.IOException;
 
 public class Kefel {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         int k = Integer.parseInt(args[0]);
-        FileWriter writer = new FileWriter("kefel.s");
+        FileWriter w = new FileWriter("kefel.s");
 
-        writer.write(".section .text\n");
-        writer.write(".globl kefel\n");
-        writer.write("kefel:\n");
+        // Proper section and global directive on separate lines
+        w.write(".section .text\n.global kefel\nkefel:\n");
 
         if (k == 0) {
-            writer.write("    movq $0, %rax\n");
-            writer.write("    ret\n");
-            writer.close();
+            w.write("    movq $0, %rax\n    ret\n");
+            w.write(".section .note.GNU-stack,\"\",@progbits\n");
+            w.close();
             return;
         }
 
         boolean first = true;
-        for (int shift = 63; shift >= 0; shift--) {
-            if ((k & (1L << shift)) != 0) {
+        for (int i = 63; i >= 0; i--) {
+            if ((k & (1L << i)) != 0) {
                 if (first) {
-                    writer.write("    movq %rdi, %rax\n");
-                    if (shift > 0) {
-                        writer.write("    shlq $" + shift + ", %rax\n");
-                    }
+                    w.write("    movq %rdi, %rax\n");
+                    if (i > 0) w.write("    shlq $" + i + ", %rax\n");
                     first = false;
                 } else {
-                    writer.write("    movq %rdi, %rcx\n");
-                    writer.write("    shlq $" + shift + ", %rcx\n");
-                    writer.write("    addq %rcx, %rax\n");
+                    w.write("    movq %rdi, %rcx\n");
+                    if (i > 0) w.write("    shlq $" + i + ", %rcx\n");
+                    w.write("    addq %rcx, %rax\n");
                 }
             }
         }
 
-        writer.write("    ret\n");
-        writer.close();
+        w.write("    ret\n");
+        w.write(".section .note.GNU-stack,\"\",@progbits\n");
+        w.close();
     }
 }
